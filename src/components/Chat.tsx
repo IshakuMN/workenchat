@@ -1,0 +1,264 @@
+"use client";
+
+import { useChat } from "ai/react";
+import { Send, Maximize2, Bot, User, Sparkles, Loader2 } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { Message } from "@/db";
+import { TableModal } from "./TableModal";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
+import { motion, AnimatePresence } from "framer-motion";
+import { cn } from "@/lib/utils";
+
+interface ChatProps {
+  threadId: string;
+  initialMessages?: Message[];
+}
+
+export function Chat({ threadId, initialMessages = [] }: ChatProps) {
+  const [modalData, setModalData] = useState<{ sheet: string, range: string, data: any[][] } | null>(null);
+  
+  const { messages, input, setInput, handleInputChange, handleSubmit, isLoading, addToolResult } = useChat({
+    api: "/api/chat",
+    body: { threadId },
+    maxToolRoundtrips: 5,
+    initialMessages: initialMessages.map((m: Message) => ({
+      id: m.id,
+      role: m.role as "user" | "assistant" | "system",
+      content: m.content,
+    })),
+  });
+
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+    }
+  }, [messages]);
+
+  const handleSelectMention = (mention: string) => {
+    setInput(prev => prev + (prev.endsWith(" ") ? "" : " ") + mention + " ");
+  };
+
+  return (
+    <div className="flex flex-col h-full bg-[#0d0d0d] relative overflow-hidden">
+      {/* Background patterns */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-white/5 rounded-full blur-[120px]" />
+      </div>
+
+      <div 
+        ref={scrollRef}
+        className="flex-1 overflow-y-auto p-4 md:p-8 space-y-8 custom-scrollbar relative z-10"
+      >
+        {messages.length === 0 && (
+          <div className="h-full flex flex-col items-center justify-center text-center space-y-4 animate-in fade-in zoom-in duration-500">
+            <div className="w-16 h-16 rounded-2xl bg-zinc-900 flex items-center justify-center border border-zinc-800 shadow-xl mb-4">
+              <Sparkles className="text-white" size={32} />
+            </div>
+            <h2 className="text-2xl font-bold text-white tracking-tight">How can I help you today?</h2>
+            <p className="text-zinc-500 max-w-sm">
+              I can help you analyze spreadsheets, generate reports, or answer questions about your data.
+            </p>
+          </div>
+        )}
+
+        <AnimatePresence initial={false}>
+          {messages.map((m, index) => (
+            <motion.div
+              key={m.id}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3, ease: "easeOut" }}
+              className={cn(
+                "flex w-full gap-4",
+                m.role === "user" ? "flex-row-reverse" : "flex-row"
+              )}
+            >
+              <div className={cn(
+                "w-8 h-8 rounded-lg shrink-0 flex items-center justify-center border shadow-sm",
+                m.role === "user" 
+                  ? "bg-zinc-800 border-zinc-700 text-zinc-300" 
+                  : "bg-zinc-900 border-zinc-800 text-white"
+              )}>
+                {m.role === "user" ? <User size={16} /> : <Bot size={16} />}
+              </div>
+
+              <div className={cn(
+                "max-w-[85%] md:max-w-[75%] space-y-1",
+                m.role === "user" ? "items-end text-right" : "items-start"
+              )}>
+                {m.role === "assistant" && (
+                  <div className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest pl-1 mb-1">
+                    WorkenAI
+                  </div>
+                )}
+                <div className={cn(
+                  "p-4 rounded-2xl shadow-sm relative group transition-all",
+                  m.role === "user"
+                    ? "bg-[#2f2f2f] text-[#ececec] selection:bg-zinc-600"
+                    : "bg-transparent text-zinc-200 border border-transparent"
+                )}>
+                  <div className={cn(
+                    "markdown-content prose-sm max-w-none leading-relaxed text-left",
+                    m.role === "user" ? "text-white" : ""
+                  )}>
+                    {m.role === "assistant" ? (
+                      <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                        {m.content}
+                      </ReactMarkdown>
+                    ) : (
+                      <div className="whitespace-pre-wrap">{m.content}</div>
+                    )}
+                  </div>
+                  
+                  {m.toolInvocations?.map((toolInvocation) => {
+                    const { toolCallId, toolName, state, args } = toolInvocation;
+
+                    if (state === 'result') {
+                      const { result } = toolInvocation;
+                      return (
+                        <div key={toolCallId} className="mt-4 p-2.5 bg-white/5 rounded-xl border border-white/10 text-[11px] text-zinc-500 font-mono flex items-center gap-2">
+                          <div className="w-1.5 h-1.5 rounded-full bg-zinc-500" />
+                          {toolName} executed
+                        </div>
+                      );
+                    }
+
+                    return (
+                      <div key={toolCallId} className="mt-4">
+                        {toolName === 'confirmAction' ? (
+                          <div className="bg-zinc-900/50 p-4 rounded-xl border border-white/10 shadow-lg backdrop-blur-sm">
+                            <p className="font-semibold text-sm mb-4 text-zinc-200">{args.message}</p>
+                            <div className="flex gap-2">
+                              <button
+                                onClick={() => addToolResult({ toolCallId, result: 'confirmed' })}
+                                className="px-4 py-2 bg-white text-black rounded-lg hover:bg-zinc-200 text-xs font-bold transition-all active:scale-95"
+                              >
+                                Confirm
+                              </button>
+                              <button
+                                onClick={() => addToolResult({ toolCallId, result: 'cancelled' })}
+                                className="px-4 py-2 bg-zinc-800 border border-zinc-700 text-zinc-400 rounded-lg hover:bg-zinc-700 text-xs font-bold transition-all active:scale-95"
+                              >
+                                Cancel
+                              </button>
+                            </div>
+                          </div>
+                        ) : toolName === 'showTablePreview' || (toolName === 'readTable' && (toolInvocation as any).result?.data) ? (
+                          <div className="bg-zinc-900/50 rounded-xl border border-white/10 shadow-lg relative group overflow-hidden">
+                            <div className="flex justify-between items-center p-3 border-b border-white/10">
+                              <h4 className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">
+                                {args.sheet || (toolInvocation as any).result?.sheet}!{args.range || (toolInvocation as any).result?.range}
+                              </h4>
+                              <button 
+                                onClick={() => setModalData({ 
+                                  sheet: args.sheet || (toolInvocation as any).result?.sheet, 
+                                  range: args.range || (toolInvocation as any).result?.range, 
+                                  data: args.data || (toolInvocation as any).result?.data 
+                                })}
+                                className="p-1.5 hover:bg-zinc-800 rounded-lg text-white transition-colors"
+                              >
+                                <Maximize2 size={14} />
+                              </button>
+                            </div>
+                            <div className="p-2 overflow-x-auto">
+                              <table className="text-[10px] w-full border-collapse">
+                                <tbody>
+                                  {(args.data || (toolInvocation as any).result?.data).slice(0, 3).map((row: any[], i: number) => (
+                                    <tr key={i}>
+                                      {row.map((cell, j) => (
+                                        <td key={j} className="border border-white/10 p-2 truncate max-w-[100px] text-zinc-400 bg-zinc-950/50">{cell}</td>
+                                      ))}
+                                    </tr>
+                                  ))}
+                                </tbody>
+                              </table>
+                            </div>
+                            {(args.data || (toolInvocation as any).result?.data).length > 3 && (
+                              <div className="text-center p-2 text-zinc-500 text-[9px] border-t border-white/10 bg-zinc-900/30">
+                                + {(args.data || (toolInvocation as any).result?.data).length - 3} more rows
+                              </div>
+                            )}
+                          </div>
+                        ) : (
+                          <div className="flex items-center gap-3 text-xs italic text-zinc-500 bg-zinc-900/50 p-3 rounded-xl border border-dashed border-white/10">
+                            <Loader2 size={14} className="animate-spin text-white" />
+                            Processing {toolName}...
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </motion.div>
+          ))}
+        </AnimatePresence>
+        
+        {isLoading && messages[messages.length - 1]?.role !== "assistant" && (
+          <motion.div 
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="flex gap-4 items-start"
+          >
+            <div className="w-8 h-8 rounded-lg shrink-0 flex items-center justify-center border border-white/10 bg-white/5 text-white">
+              <Bot size={16} />
+            </div>
+            <div className="flex flex-col gap-2">
+              <div className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest pl-1">
+                WorkenAI
+              </div>
+              <div className="p-4 rounded-2xl bg-transparent text-zinc-400 flex items-center gap-3">
+                <div className="flex gap-1">
+                  <motion.div animate={{ opacity: [0.3, 1, 0.3] }} transition={{ repeat: Infinity, duration: 1.5, delay: 0 }} className="w-2 h-2 rounded-full bg-white" />
+                  <motion.div animate={{ opacity: [0.3, 1, 0.3] }} transition={{ repeat: Infinity, duration: 1.5, delay: 0.2 }} className="w-2 h-2 rounded-full bg-white" />
+                  <motion.div animate={{ opacity: [0.3, 1, 0.3] }} transition={{ repeat: Infinity, duration: 1.5, delay: 0.4 }} className="w-2 h-2 rounded-full bg-white" />
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </div>
+
+      <div className="p-4 md:p-6 bg-[#0d0d0d] relative z-10">
+        <form 
+          onSubmit={handleSubmit}
+          className="max-w-3xl mx-auto relative group"
+        >
+          <div className="relative flex gap-2 items-center bg-[#212121] border border-white/5 rounded-2xl p-2 pl-4 shadow-2xl focus-within:border-white/10 transition-all">
+            <input
+              value={input}
+              onChange={handleInputChange}
+              placeholder="Message WorkenAI..."
+              className="flex-1 bg-transparent py-2.5 text-[#ececec] placeholder:text-zinc-500 focus:outline-none text-[15px]"
+            />
+            <button
+              type="submit"
+              disabled={isLoading || !input.trim()}
+              className="p-2.5 bg-white text-black rounded-xl hover:bg-zinc-200 disabled:bg-zinc-800 disabled:text-zinc-600 transition-all active:scale-95 shrink-0"
+            >
+              {isLoading ? <Loader2 size={20} className="animate-spin" /> : <Send size={20} />}
+            </button>
+          </div>
+          <div className="mt-2 text-center">
+            <p className="text-[10px] text-zinc-600">
+              WorkenAI can make mistakes. Check important info.
+            </p>
+          </div>
+        </form>
+      </div>
+
+      {modalData && (
+        <TableModal
+          sheet={modalData.sheet}
+          range={modalData.range}
+          data={modalData.data}
+          onClose={() => setModalData(null)}
+          onSelect={handleSelectMention}
+        />
+      )}
+    </div>
+  );
+}

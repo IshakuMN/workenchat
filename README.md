@@ -1,36 +1,59 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# AI Chat with Generative UI & XLSX Integration
 
-## Getting Started
+A simplified ChatGPT-like interface built with Next.js, Bun, SQLite, and the Vercel AI SDK.
 
-First, run the development server:
+## Features
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+- **Chat Threads**: Persistent threads stored in SQLite.
+- **AI Streaming**: Responses streamed via Vercel AI SDK `useChat`.
+- **Generative UI**: Client-side tools rendering interactive UI components.
+- **Dangerous Actions Confirmation**: Built-in flow for confirming destructive actions (Update/Delete).
+- **XLSX Integration**: Read and update Excel files with a real-time table preview and grid selection.
+- **Table Mentions**: Select ranges in a grid modal and insert them as mentions (e.g., `@Sheet1!A1:B3`) for the AI to process.
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Stack
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+- **Framework**: Next.js 16 (App Router)
+- **Runtime/DB**: Bun 1.3+ & `bun:sqlite`
+- **AI SDK**: Vercel AI SDK (Generative UI)
+- **Styling**: Tailwind CSS & Lucide Icons
+- **Parsing**: `xlsx` library
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Setup & Run
 
-## Learn More
+1. **Install Dependencies**:
+   ```bash
+   bun install
+   ```
 
-To learn more about Next.js, take a look at the following resources:
+2. **Initialize Database and Data**:
+   The database and example XLSX file are automatically initialized in the `data/` directory upon first run or via script.
+   ```bash
+   bun run scripts/create-xlsx.ts
+   ```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+3. **Configure Environment**:
+   Create a `.env.local` file and add your OpenAI API key:
+   ```env
+   OPENAI_API_KEY=your_api_key_here
+   ```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+4. **Run Development Server**:
+   ```bash
+   bun run dev
+   ```
 
-## Deploy on Vercel
+## Folder Structure
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+- `/src/app`: Routes and API endpoints.
+- `/src/db`: SQLite initialization and helpers.
+- `/src/lib/ai`: AI tools and logic.
+- `/src/lib/xlsx`: XLSX read/write logic.
+- `/src/components`: UI components (Sidebar, Chat, TableModal, etc.).
+- `/data`: SQLite DB and `example.xlsx` storage.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Implementation Details
+
+- **Persistence**: Messages are saved to SQLite on every interaction.
+- **Confirmation**: Destructive tools trigger a UI card with Yes/No buttons before proceeding.
+- **Mentions**: The `@Sheet!Range` format is used to help the model identify specific data slices.
