@@ -16,15 +16,15 @@ const db = new Database(dbPath, { create: true });
 export type Thread = {
   id: string;
   title: string;
-  createdAt: string;
+  createdAt: number;
 };
 
 export type Message = {
   id: string;
   threadId: string;
-  role: "user" | "assistant" | "system" | "tool";
+  role: "user" | "assistant";
   content: string;
-  createdAt: string;
+  createdAt: number;
 };
 
 // Initialize tables
@@ -33,7 +33,7 @@ export function initDb() {
     CREATE TABLE IF NOT EXISTS threads (
       id TEXT PRIMARY KEY,
       title TEXT NOT NULL,
-      createdAt DATETIME DEFAULT CURRENT_TIMESTAMP
+      createdAt INTEGER NOT NULL
     )
   `);
 
@@ -43,7 +43,7 @@ export function initDb() {
       threadId TEXT NOT NULL,
       role TEXT NOT NULL,
       content TEXT NOT NULL,
-      createdAt DATETIME DEFAULT CURRENT_TIMESTAMP,
+      createdAt INTEGER NOT NULL,
       FOREIGN KEY (threadId) REFERENCES threads(id) ON DELETE CASCADE
     )
   `);
@@ -52,25 +52,34 @@ export function initDb() {
 // DB Helpers
 export const dbHelpers = {
   createThread: (id: string, title: string) => {
-    return db.run("INSERT INTO threads (id, title) VALUES (?, ?)", [id, title]);
+    return db.run(
+      "INSERT INTO threads (id, title, createdAt) VALUES (?, ?, ?)",
+      [id, title, Date.now()],
+    );
   },
 
   getThreads: (): Thread[] => {
-    return db.query("SELECT * FROM threads ORDER BY createdAt DESC").all() as Thread[];
+    return db
+      .query("SELECT * FROM threads ORDER BY createdAt DESC")
+      .all() as Thread[];
   },
 
   getThreadById: (id: string): Thread | null => {
-    return db.query("SELECT * FROM threads WHERE id = ?").get(id) as Thread | null;
+    return db
+      .query("SELECT * FROM threads WHERE id = ?")
+      .get(id) as Thread | null;
   },
 
   getMessagesByThread: (threadId: string): Message[] => {
-    return db.query("SELECT * FROM messages WHERE threadId = ? ORDER BY createdAt ASC").all(threadId) as Message[];
+    return db
+      .query("SELECT * FROM messages WHERE threadId = ? ORDER BY createdAt ASC")
+      .all(threadId) as Message[];
   },
 
   saveMessage: (message: Omit<Message, "createdAt">) => {
     return db.run(
-      "INSERT INTO messages (id, threadId, role, content) VALUES (?, ?, ?, ?)",
-      [message.id, message.threadId, message.role, message.content]
+      "INSERT INTO messages (id, threadId, role, content, createdAt) VALUES (?, ?, ?, ?, ?)",
+      [message.id, message.threadId, message.role, message.content, Date.now()],
     );
   },
 
@@ -80,7 +89,7 @@ export const dbHelpers = {
 
   deleteThread: (id: string) => {
     return db.run("DELETE FROM threads WHERE id = ?", [id]);
-  }
+  },
 };
 
 // Auto-initialize on import

@@ -2,17 +2,7 @@
 
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
-import {
-  SquarePen,
-  MessageSquare,
-  Trash2,
-  ChevronsLeft,
-  ChevronsRight,
-  Image as ImageIcon,
-  LayoutGrid,
-  Layers,
-  Ellipsis,
-} from "lucide-react";
+import { SquarePen, Trash2, ChevronsLeft, ChevronsRight } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Thread } from "@/db";
 import { cn } from "@/lib/utils";
@@ -52,7 +42,7 @@ export function Sidebar() {
   const handleDeleteThread = async (id: string, e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    if (confirm("Are you sure you want to delete this conversation?")) {
+    if (confirm("Вы уверены, что хотите удалить этот диалог?")) {
       const res = await fetch(`/api/threads?id=${id}`, { method: "DELETE" });
       if (res.ok) {
         if (currentThreadId === id) {
@@ -103,128 +93,106 @@ export function Sidebar() {
             </button>
           </div>
 
-          {/* Secondary Nav Items */}
-          <div className="px-3 space-y-0.5">
-            <NavItem
+          {/* New Chat Button */}
+          <div className="px-3 mb-6">
+            <button
               onClick={handleCreateThread}
-              icon={<SquarePen size={18} />}
-              label={isCollapsed ? "" : "New chat"}
-              isCollapsed={isCollapsed}
-            />
+              className={cn(
+                "flex items-center gap-3 w-full  text-white hover:bg-zinc-900 transition-all rounded-xl p-3 shadow-md active:scale-95 group",
+                isCollapsed ? "justify-center p-3" : "",
+              )}
+            >
+              <SquarePen size={18} />
+              {!isCollapsed && (
+                <span className="font-semibold text-sm">Новый чат</span>
+              )}
+            </button>
           </div>
 
-          {/* Thread List */}
-          <div
-            className={cn(
-              "flex-1 overflow-y-auto px-3 mt-8 space-y-0.5 custom-scrollbar transition-opacity duration-300",
-              isCollapsed ? "opacity-0 pointer-events-none" : "opacity-100",
+          {/* Threads List */}
+          <div className="flex-1 overflow-y-auto px-3 space-y-2 custom-scrollbar">
+            {!isCollapsed && (
+              <div className="px-2 text-xs font-medium text-zinc-500 mb-2 uppercase tracking-wide">
+                История
+              </div>
             )}
-          >
-            <div className="px-3 mb-2">
-              <span className="text-xs font-medium text-zinc-500">
-                Your chats
-              </span>
-            </div>
 
-            <AnimatePresence mode="popLayout" initial={false}>
+            <AnimatePresence initial={false}>
               {threads.map((thread) => (
                 <motion.div
                   key={thread.id}
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  layout
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, height: 0 }}
                 >
                   <Link
                     href={`/${thread.id}`}
                     className={cn(
-                      "flex items-center justify-between group p-3 rounded-xl text-sm transition-all duration-200 relative overflow-hidden",
+                      "group flex items-center gap-3 p-3 rounded-xl transition-all relative overflow-hidden",
                       currentThreadId === thread.id
-                        ? "bg-[#212121] text-white"
-                        : "hover:bg-[#1a1a1a] text-[#ececec]",
+                        ? "bg-[#212121] text-white shadow-inner"
+                        : "text-zinc-400 hover:bg-[#1a1a1a] hover:text-zinc-200",
+                      isCollapsed ? "justify-center" : "",
                     )}
                   >
-                    <div className="flex items-center gap-3 truncate min-w-0">
-                      <span className="truncate">
-                        {thread.title || "Untitled Chat"}
+                    {!isCollapsed && (
+                      <span className="text-sm truncate pr-8 flex-1">
+                        {thread.title || "Новый чат"}
                       </span>
-                    </div>
-                    <div className="flex items-center opacity-0 group-hover:opacity-100 transition-opacity">
+                    )}
+
+                    {!isCollapsed && (
                       <button
                         onClick={(e) => handleDeleteThread(thread.id, e)}
-                        className="p-1 hover:text-red-500 rounded transition-all"
+                        className="absolute right-2 opacity-0 group-hover:opacity-100 p-1.5 hover:bg-red-900/30 hover:text-red-400 rounded-lg transition-all"
                       >
                         <Trash2 size={14} />
                       </button>
-                    </div>
+                    )}
                   </Link>
                 </motion.div>
               ))}
             </AnimatePresence>
+
+            {threads.length === 0 && !isCollapsed && (
+              <div className="text-center py-10">
+                <p className="text-zinc-600 text-xs">Нет диалогов</p>
+              </div>
+            )}
           </div>
 
-          {/* User Profile */}
-          <div className="p-3 mt-auto">
-            <button
+          {/* User Profile / Footer */}
+          <div className="p-3 mt-auto border-t border-white/5">
+            <div
               className={cn(
-                "w-full flex items-center rounded-xl hover:bg-zinc-800 transition-colors group p-2",
-                isCollapsed ? "justify-center" : "justify-between",
+                "flex items-center gap-3 p-2 rounded-xl hover:bg-[#1a1a1a] transition-colors cursor-pointer text-zinc-400 hover:text-zinc-200",
+                isCollapsed ? "justify-center" : "",
               )}
             >
-              <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-full bg-[#1e88e5] flex items-center justify-center text-white text-xs font-bold ring-2 ring-black shrink-0">
-                  I
-                </div>
-                {!isCollapsed && (
-                  <div className="flex flex-col items-start min-w-0">
-                    <span className="text-sm font-medium text-white truncate">
-                      @ishakumn
-                    </span>
-                    <span className="text-[11px] text-zinc-500">Free</span>
-                  </div>
-                )}
+              <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-indigo-500 to-purple-500 flex items-center justify-center text-white text-xs font-bold ring-2 ring-black">
+                I
               </div>
               {!isCollapsed && (
-                <div className="px-3 py-1 bg-zinc-800 rounded-full text-[10px] font-bold text-zinc-400 group-hover:text-white transition-colors">
-                  Upgrade
+                <div className="flex flex-col">
+                  <span className="text-sm font-medium text-white">
+                    tg:@ishakumn
+                  </span>
+                  <span className="text-[10px] text-zinc-500">Free Plan</span>
                 </div>
               )}
-            </button>
+            </div>
           </div>
         </div>
       </motion.aside>
 
-      {/* Floating Panel Toggle when collapsed removed */}
+      {/* Mobile Overlay */}
+      <div
+        className={cn(
+          "fixed inset-0 bg-black/50 z-40 md:hidden transition-opacity",
+          !isCollapsed ? "opacity-100" : "opacity-0 pointer-events-none",
+        )}
+        onClick={() => !isCollapsed && setIsCollapsed(true)}
+      />
     </>
-  );
-}
-
-function NavItem({
-  icon,
-  label,
-  onClick,
-  isCollapsed,
-}: {
-  icon: React.ReactNode;
-  label: string;
-  onClick?: () => void;
-  isCollapsed?: boolean;
-}) {
-  return (
-    <button
-      onClick={(e) => {
-        if (onClick) {
-          e.stopPropagation();
-          onClick();
-        }
-      }}
-      className={cn(
-        "w-full flex items-center gap-3 p-2 rounded-xl hover:bg-zinc-800 text-sm font-medium text-zinc-400 hover:text-white transition-all",
-        isCollapsed ? "justify-center" : "",
-      )}
-    >
-      <span className="shrink-0">{icon}</span>
-      {!isCollapsed && <span>{label}</span>}
-    </button>
   );
 }

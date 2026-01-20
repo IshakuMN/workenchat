@@ -13,8 +13,17 @@ interface TableModalProps {
   onSelect: (selection: string) => void;
 }
 
-export function TableModal({ sheet, range, data, onClose, onSelect }: TableModalProps) {
-  const [selectedRange, setSelectedRange] = useState<{ start: [number, number], end: [number, number] } | null>(null);
+export function TableModal({
+  sheet,
+  range,
+  data,
+  onClose,
+  onSelect,
+}: TableModalProps) {
+  const [selectedRange, setSelectedRange] = useState<{
+    start: [number, number];
+    end: [number, number];
+  } | null>(null);
 
   const getCellLabel = (r: number, c: number) => {
     const colLabel = String.fromCharCode(65 + c);
@@ -39,21 +48,21 @@ export function TableModal({ sheet, range, data, onClose, onSelect }: TableModal
 
     const s1 = getCellLabel(r1, c1);
     const s2 = getCellLabel(r2, c2);
-    
+
     return `@${sheet}!${s1}${s1 === s2 ? "" : ":" + s2}`;
   };
 
   return (
     <div className="fixed inset-0 z-100 flex items-center justify-center p-4">
-      <motion.div 
+      <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
         onClick={onClose}
         className="absolute inset-0 bg-black/60 backdrop-blur-sm"
       />
-      
-      <motion.div 
+
+      <motion.div
         initial={{ opacity: 0, scale: 0.98, y: 10 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.98, y: 10 }}
@@ -65,12 +74,16 @@ export function TableModal({ sheet, range, data, onClose, onSelect }: TableModal
               <Table size={20} />
             </div>
             <div>
-              <h2 className="font-bold text-white tracking-tight leading-none mb-1">{sheet}</h2>
-              <p className="text-[10px] text-zinc-500 font-mono uppercase tracking-widest">{range}</p>
+              <h2 className="font-bold text-white tracking-tight leading-none mb-1">
+                {sheet}
+              </h2>
+              <p className="text-[10px] text-zinc-500 font-mono uppercase tracking-widest">
+                {range}
+              </p>
             </div>
           </div>
-          <button 
-            onClick={onClose} 
+          <button
+            onClick={onClose}
             className="p-2 hover:bg-zinc-800 rounded-xl text-zinc-400 hover:text-white transition-all active:scale-95"
           >
             <X size={20} />
@@ -84,7 +97,10 @@ export function TableModal({ sheet, range, data, onClose, onSelect }: TableModal
                 <tr>
                   <th className="p-2 border border-white/5 bg-zinc-900/80 w-10"></th>
                   {data[0]?.map((_, i) => (
-                    <th key={i} className="p-2 border border-white/5 bg-zinc-900/80 font-mono text-zinc-500 font-medium">
+                    <th
+                      key={i}
+                      className="p-2 border border-white/5 bg-zinc-900/80 font-mono text-zinc-500 font-medium"
+                    >
                       {String.fromCharCode(65 + i)}
                     </th>
                   ))}
@@ -93,23 +109,42 @@ export function TableModal({ sheet, range, data, onClose, onSelect }: TableModal
               <tbody>
                 {data.map((row, r) => (
                   <tr key={r}>
-                    <td className="p-2 border border-white/5 bg-zinc-900/50 text-center font-mono text-[10px] text-zinc-500">{r + 1}</td>
+                    <td className="p-2 border border-white/5 bg-zinc-900/50 text-center font-mono text-[10px] text-zinc-500">
+                      {r + 1}
+                    </td>
                     {row.map((cell, c) => {
-                      const isSelected = selectedRange && 
-                        r >= Math.min(selectedRange.start[0], selectedRange.end[0]) &&
-                        r <= Math.max(selectedRange.start[0], selectedRange.end[0]) &&
-                        c >= Math.min(selectedRange.start[1], selectedRange.end[1]) &&
-                        c <= Math.max(selectedRange.start[1], selectedRange.end[1]);
+                      const isSelected =
+                        selectedRange &&
+                        r >=
+                          Math.min(
+                            selectedRange.start[0],
+                            selectedRange.end[0],
+                          ) &&
+                        r <=
+                          Math.max(
+                            selectedRange.start[0],
+                            selectedRange.end[0],
+                          ) &&
+                        c >=
+                          Math.min(
+                            selectedRange.start[1],
+                            selectedRange.end[1],
+                          ) &&
+                        c <=
+                          Math.max(
+                            selectedRange.start[1],
+                            selectedRange.end[1],
+                          );
 
                       return (
-                        <td 
-                          key={c} 
+                        <td
+                          key={c}
                           onClick={() => handleCellClick(r, c)}
                           className={cn(
                             "p-3 border border-white/5 cursor-pointer transition-all min-w-[100px] text-zinc-300",
-                            isSelected 
-                              ? "bg-white/10 text-white border-white/20" 
-                              : "hover:bg-zinc-800/30"
+                            isSelected
+                              ? "bg-white/10 text-white border-white/20"
+                              : "hover:bg-zinc-800/30",
                           )}
                         >
                           {cell}
@@ -129,19 +164,21 @@ export function TableModal({ sheet, range, data, onClose, onSelect }: TableModal
               <Grid3X3 size={16} />
             </div>
             <div className="flex flex-col">
-              <span className="text-[10px] text-zinc-500 uppercase font-bold tracking-widest">Selection</span>
+              <span className="text-[10px] text-zinc-500 uppercase font-bold tracking-widest">
+                Выделение
+              </span>
               <span className="text-sm font-mono text-white font-bold">
-                {formatSelection() || "No cells selected"}
+                {formatSelection() || "Нет выделения"}
               </span>
             </div>
           </div>
-          
+
           <div className="flex gap-3">
             <button
               onClick={() => setSelectedRange(null)}
               className="px-5 py-2.5 text-zinc-400 hover:text-white hover:bg-zinc-800 rounded-xl text-sm font-medium transition-all active:scale-95"
             >
-              Clear
+              Сбросить
             </button>
             <button
               disabled={!selectedRange}
@@ -152,7 +189,7 @@ export function TableModal({ sheet, range, data, onClose, onSelect }: TableModal
               className="px-6 py-2.5 bg-white text-black rounded-xl hover:bg-zinc-200 disabled:bg-zinc-800 disabled:text-zinc-600 transition-all active:scale-95 text-sm font-bold flex items-center gap-2"
             >
               <Check size={16} />
-              Apply Selection
+              Применить
             </button>
           </div>
         </div>
