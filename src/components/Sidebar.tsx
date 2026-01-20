@@ -6,8 +6,8 @@ import {
   SquarePen,
   MessageSquare,
   Trash2,
-  PanelLeft,
-  Search,
+  ChevronsLeft,
+  ChevronsRight,
   Image as ImageIcon,
   LayoutGrid,
   Layers,
@@ -68,36 +68,58 @@ export function Sidebar() {
     <>
       <motion.aside
         initial={false}
-        animate={{ width: isCollapsed ? 0 : 260 }}
+        animate={{ width: isCollapsed ? 68 : 260 }}
+        onClick={() => isCollapsed && setIsCollapsed(false)}
         className={cn(
           "bg-[#0d0d0d] border-r border-white/5 flex flex-col h-full text-[#ececec] relative transition-all duration-300 ease-in-out overflow-hidden group/sidebar",
-          isCollapsed ? "border-none" : "",
+          isCollapsed ? "cursor-pointer hover:bg-zinc-900/50" : "",
         )}
       >
-        <div className="flex flex-col h-full min-w-[260px]">
+        <div className="flex flex-col h-full w-full">
           {/* Top Header */}
-          <div className="p-3 mb-2 flex items-center justify-between">
+          <div
+            className={cn(
+              "p-3 mb-2 flex items-center",
+              isCollapsed ? "flex-col gap-4" : "justify-between",
+            )}
+          >
+            <div className="flex items-center gap-2 px-2">
+              <div className="w-8 h-8 flex items-center justify-center text-white font-bold text-lg">
+                W.
+              </div>
+            </div>
             <button
-              onClick={() => setIsCollapsed(true)}
+              onClick={(e) => {
+                e.stopPropagation();
+                setIsCollapsed(!isCollapsed);
+              }}
               className="p-2 hover:bg-zinc-800 rounded-lg text-zinc-400 hover:text-white transition-colors"
             >
-              <PanelLeft size={18} />
-            </button>
-            <button
-              onClick={handleCreateThread}
-              className="p-2 hover:bg-zinc-800 rounded-lg text-zinc-400 hover:text-white transition-colors"
-            >
-              <SquarePen size={18} />
+              {isCollapsed ? (
+                <ChevronsRight size={18} />
+              ) : (
+                <ChevronsLeft size={18} />
+              )}
             </button>
           </div>
 
           {/* Secondary Nav Items */}
           <div className="px-3 space-y-0.5">
-            <NavItem icon={<Search size={18} />} label="Search chats" />
+            <NavItem
+              onClick={handleCreateThread}
+              icon={<SquarePen size={18} />}
+              label={isCollapsed ? "" : "New chat"}
+              isCollapsed={isCollapsed}
+            />
           </div>
 
           {/* Thread List */}
-          <div className="flex-1 overflow-y-auto px-3 mt-8 space-y-0.5 custom-scrollbar">
+          <div
+            className={cn(
+              "flex-1 overflow-y-auto px-3 mt-8 space-y-0.5 custom-scrollbar transition-opacity duration-300",
+              isCollapsed ? "opacity-0 pointer-events-none" : "opacity-100",
+            )}
+          >
             <div className="px-3 mb-2">
               <span className="text-xs font-medium text-zinc-500">
                 Your chats
@@ -143,62 +165,66 @@ export function Sidebar() {
 
           {/* User Profile */}
           <div className="p-3 mt-auto">
-            <button className="w-full flex items-center justify-between p-2 rounded-xl hover:bg-zinc-800 transition-colors group">
+            <button
+              className={cn(
+                "w-full flex items-center rounded-xl hover:bg-zinc-800 transition-colors group p-2",
+                isCollapsed ? "justify-center" : "justify-between",
+              )}
+            >
               <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-full bg-[#1e88e5] flex items-center justify-center text-white text-xs font-bold ring-2 ring-black">
-                  JD
+                <div className="w-8 h-8 rounded-full bg-[#1e88e5] flex items-center justify-center text-white text-xs font-bold ring-2 ring-black shrink-0">
+                  I
                 </div>
-                <div className="flex flex-col items-start min-w-0">
-                  <span className="text-sm font-medium text-white truncate">
-                    John Doe
-                  </span>
-                  <span className="text-[11px] text-zinc-500">Free</span>
+                {!isCollapsed && (
+                  <div className="flex flex-col items-start min-w-0">
+                    <span className="text-sm font-medium text-white truncate">
+                      @ishakumn
+                    </span>
+                    <span className="text-[11px] text-zinc-500">Free</span>
+                  </div>
+                )}
+              </div>
+              {!isCollapsed && (
+                <div className="px-3 py-1 bg-zinc-800 rounded-full text-[10px] font-bold text-zinc-400 group-hover:text-white transition-colors">
+                  Upgrade
                 </div>
-              </div>
-              <div className="px-3 py-1 bg-zinc-800 rounded-full text-[10px] font-bold text-zinc-400 group-hover:text-white transition-colors">
-                Upgrade
-              </div>
+              )}
             </button>
           </div>
         </div>
       </motion.aside>
 
-      {/* Floating Panel Toggle when collapsed */}
-      <AnimatePresence>
-        {isCollapsed && (
-          <motion.div
-            initial={{ opacity: 0, x: -10 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -10 }}
-            className="fixed top-4 left-4 z-50 flex flex-col gap-4"
-          >
-            <button
-              onClick={() => setIsCollapsed(false)}
-              className="p-2 bg-zinc-900 border border-zinc-800 text-zinc-100 rounded-lg hover:bg-zinc-800 shadow-xl"
-            >
-              <PanelLeft size={18} />
-            </button>
-            <div className="w-8 h-8 rounded-lg bg-zinc-900 border border-zinc-800 flex items-center justify-center text-white font-bold text-lg shadow-xl cursor-pointer hover:bg-zinc-800">
-              W
-            </div>
-            <button
-              onClick={handleCreateThread}
-              className="p-2 bg-zinc-900 border border-zinc-800 text-zinc-100 rounded-lg hover:bg-zinc-800 shadow-xl"
-            >
-              <SquarePen size={18} />
-            </button>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {/* Floating Panel Toggle when collapsed removed */}
     </>
   );
 }
 
-function NavItem({ icon, label }: { icon: React.ReactNode; label: string }) {
+function NavItem({
+  icon,
+  label,
+  onClick,
+  isCollapsed,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  onClick?: () => void;
+  isCollapsed?: boolean;
+}) {
   return (
-    <button className="w-full flex items-center gap-3 p-2 rounded-xl hover:bg-zinc-800 text-sm font-medium text-zinc-400 hover:text-white transition-all">
+    <button
+      onClick={(e) => {
+        if (onClick) {
+          e.stopPropagation();
+          onClick();
+        }
+      }}
+      className={cn(
+        "w-full flex items-center gap-3 p-2 rounded-xl hover:bg-zinc-800 text-sm font-medium text-zinc-400 hover:text-white transition-all",
+        isCollapsed ? "justify-center" : "",
+      )}
+    >
       <span className="shrink-0">{icon}</span>
-      <span>{label}</span>
+      {!isCollapsed && <span>{label}</span>}
     </button>
   );
 }

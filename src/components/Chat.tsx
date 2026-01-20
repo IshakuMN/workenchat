@@ -145,9 +145,23 @@ export function Chat({ threadId, initialMessages = [] }: ChatProps) {
   });
 
   const scrollRef = useRef<HTMLDivElement>(null);
+  const autoScrollRef = useRef(true);
+
+  const handleScroll = () => {
+    if (scrollRef.current) {
+      const { scrollTop, scrollHeight, clientHeight } = scrollRef.current;
+      const isAtBottom = scrollHeight - scrollTop - clientHeight < 100;
+      autoScrollRef.current = isAtBottom;
+    }
+  };
 
   useEffect(() => {
-    if (scrollRef.current) {
+    const lastMessage = messages[messages.length - 1];
+    if (lastMessage?.role === "user") {
+      autoScrollRef.current = true;
+    }
+
+    if (autoScrollRef.current && scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
   }, [messages]);
@@ -165,6 +179,7 @@ export function Chat({ threadId, initialMessages = [] }: ChatProps) {
 
       <div
         ref={scrollRef}
+        onScroll={handleScroll}
         className="flex-1 overflow-y-auto p-4 md:p-8 space-y-8 custom-scrollbar relative z-10"
       >
         {messages.length === 0 && (
