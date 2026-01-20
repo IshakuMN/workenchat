@@ -4,9 +4,21 @@ import fs from "node:fs";
 
 const filePath = path.join(process.cwd(), "data", "example.xlsx");
 
+function readWorkbook() {
+  try {
+    if (!fs.existsSync(filePath)) return null;
+    const fileBuffer = fs.readFileSync(filePath);
+    return XLSX.read(fileBuffer, { type: "buffer" });
+  } catch (error) {
+    console.error("Error reading workbook:", error);
+    return null;
+  }
+}
+
 export function getRange(sheetName: string, range: string) {
-  if (!fs.existsSync(filePath)) return null;
-  const workbook = XLSX.readFile(filePath);
+  const workbook = readWorkbook();
+  if (!workbook) return null;
+
   const sheet = workbook.Sheets[sheetName];
   if (!sheet) return null;
 
@@ -15,19 +27,34 @@ export function getRange(sheetName: string, range: string) {
 }
 
 export function updateCell(sheetName: string, cell: string, value: any) {
-  if (!fs.existsSync(filePath)) return false;
-  const workbook = XLSX.readFile(filePath);
-  let sheet = workbook.Sheets[sheetName];
-  if (!sheet) return false;
+  try {
+    const workbook = readWorkbook();
+    if (!workbook) {
+      console.error("updateCell: Workbook not found");
+      return false;
+    }
 
-  XLSX.utils.sheet_add_aoa(sheet, [[value]], { origin: cell });
-  XLSX.writeFile(workbook, filePath);
-  return true;
+    let sheet = workbook.Sheets[sheetName];
+    if (!sheet) {
+      console.error(`updateCell: Sheet ${sheetName} not found`);
+      return false;
+    }
+
+    XLSX.utils.sheet_add_aoa(sheet, [[value]], { origin: cell });
+    // Use fs.writeFileSync explicitly for better control/debugging than XLSX.writeFile
+    const buffer = XLSX.write(workbook, { type: "buffer", bookType: "xlsx" });
+    fs.writeFileSync(filePath, buffer);
+    return true;
+  } catch (error) {
+    console.error("updateCell Error:", error);
+    throw error;
+  }
 }
 
 export function getAllData(sheetName: string) {
-  if (!fs.existsSync(filePath)) return null;
-  const workbook = XLSX.readFile(filePath);
+  const workbook = readWorkbook();
+  if (!workbook) return null;
+
   const sheet = workbook.Sheets[sheetName];
   if (!sheet) return null;
 
@@ -35,8 +62,13 @@ export function getAllData(sheetName: string) {
   return data;
 }
 
-export function getSheets() {
-  if (!fs.existsSync(filePath)) return [];
-  const workbook = XLSX.readFile(filePath);
-  return workbook.SheetNames;
+export function getSheets(): string[] {
+  try {
+    const workbook = readWorkbook();
+    if (!workbook) return [];
+    return workbook.SheetNames;
+  } catch (error) {
+    console.error("Error getting sheets:", error);
+    return [];
+  }
 }

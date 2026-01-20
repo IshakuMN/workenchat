@@ -2,16 +2,16 @@
 
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
-import { 
-  SquarePen, 
-  MessageSquare, 
-  Trash2, 
-  PanelLeft, 
-  Search, 
-  Image as ImageIcon, 
-  LayoutGrid, 
+import {
+  SquarePen,
+  MessageSquare,
+  Trash2,
+  PanelLeft,
+  Search,
+  Image as ImageIcon,
+  LayoutGrid,
   Layers,
-  Ellipsis
+  Ellipsis,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Thread } from "@/db";
@@ -66,18 +66,18 @@ export function Sidebar() {
 
   return (
     <>
-      <motion.aside 
+      <motion.aside
         initial={false}
         animate={{ width: isCollapsed ? 0 : 260 }}
         className={cn(
           "bg-[#0d0d0d] border-r border-white/5 flex flex-col h-full text-[#ececec] relative transition-all duration-300 ease-in-out overflow-hidden group/sidebar",
-          isCollapsed ? "border-none" : ""
+          isCollapsed ? "border-none" : "",
         )}
       >
         <div className="flex flex-col h-full min-w-[260px]">
           {/* Top Header */}
           <div className="p-3 mb-2 flex items-center justify-between">
-            <button 
+            <button
               onClick={() => setIsCollapsed(true)}
               className="p-2 hover:bg-zinc-800 rounded-lg text-zinc-400 hover:text-white transition-colors"
             >
@@ -99,9 +99,11 @@ export function Sidebar() {
           {/* Thread List */}
           <div className="flex-1 overflow-y-auto px-3 mt-8 space-y-0.5 custom-scrollbar">
             <div className="px-3 mb-2">
-              <span className="text-xs font-medium text-zinc-500">Your chats</span>
+              <span className="text-xs font-medium text-zinc-500">
+                Your chats
+              </span>
             </div>
-            
+
             <AnimatePresence mode="popLayout" initial={false}>
               {threads.map((thread) => (
                 <motion.div
@@ -117,11 +119,13 @@ export function Sidebar() {
                       "flex items-center justify-between group p-3 rounded-xl text-sm transition-all duration-200 relative overflow-hidden",
                       currentThreadId === thread.id
                         ? "bg-[#212121] text-white"
-                        : "hover:bg-[#1a1a1a] text-[#ececec]"
+                        : "hover:bg-[#1a1a1a] text-[#ececec]",
                     )}
                   >
                     <div className="flex items-center gap-3 truncate min-w-0">
-                      <span className="truncate">{thread.title || "Untitled Chat"}</span>
+                      <span className="truncate">
+                        {thread.title || "Untitled Chat"}
+                      </span>
                     </div>
                     <div className="flex items-center opacity-0 group-hover:opacity-100 transition-opacity">
                       <button
@@ -145,7 +149,9 @@ export function Sidebar() {
                   JD
                 </div>
                 <div className="flex flex-col items-start min-w-0">
-                  <span className="text-sm font-medium text-white truncate">John Doe</span>
+                  <span className="text-sm font-medium text-white truncate">
+                    John Doe
+                  </span>
                   <span className="text-[11px] text-zinc-500">Free</span>
                 </div>
               </div>
@@ -166,7 +172,7 @@ export function Sidebar() {
             exit={{ opacity: 0, x: -10 }}
             className="fixed top-4 left-4 z-50 flex flex-col gap-4"
           >
-            <button 
+            <button
               onClick={() => setIsCollapsed(false)}
               className="p-2 bg-zinc-900 border border-zinc-800 text-zinc-100 rounded-lg hover:bg-zinc-800 shadow-xl"
             >
@@ -188,7 +194,7 @@ export function Sidebar() {
   );
 }
 
-function NavItem({ icon, label }: { icon: React.ReactNode, label: string }) {
+function NavItem({ icon, label }: { icon: React.ReactNode; label: string }) {
   return (
     <button className="w-full flex items-center gap-3 p-2 rounded-xl hover:bg-zinc-800 text-sm font-medium text-zinc-400 hover:text-white transition-all">
       <span className="shrink-0">{icon}</span>

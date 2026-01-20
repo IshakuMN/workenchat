@@ -8,7 +8,7 @@ interface ThreadPageProps {
 
 export default async function ThreadPage({ params }: ThreadPageProps) {
   const { threadId } = await params;
-  
+
   const thread = dbHelpers.getThreadById(threadId);
   if (!thread) {
     notFound();
@@ -28,7 +28,6 @@ export default async function ThreadPage({ params }: ThreadPageProps) {
             {threadId.substring(0, 8)}...
           </div>
         </div>
-
       </header>
       <div className="flex-1 overflow-hidden">
         <Chat threadId={threadId} initialMessages={initialMessages} />

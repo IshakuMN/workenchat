@@ -22,18 +22,21 @@ A simplified ChatGPT-like interface built with Next.js, Bun, SQLite, and the Ver
 ## Setup & Run
 
 1. **Install Dependencies**:
+
    ```bash
    bun install
    ```
 
 2. **Initialize Database and Data**:
    The database and example XLSX file are automatically initialized in the `data/` directory upon first run or via script.
+
    ```bash
    bun run scripts/create-xlsx.ts
    ```
 
 3. **Configure Environment**:
    Create a `.env.local` file and add your OpenAI API key:
+
    ```env
    OPENAI_API_KEY=your_api_key_here
    ```
