@@ -1,4 +1,4 @@
-import { updateCell } from "../src/lib/xlsx/index.ts";
+import { updateCell } from "../src/lib/xlsx/index";
 import path from "node:path";
 
 const filePath = path.join(process.cwd(), "data", "example.xlsx");

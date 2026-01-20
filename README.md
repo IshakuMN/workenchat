@@ -6,7 +6,7 @@ WorkenAI — это упрощённый аналог интерфейса ChatG
 
 - **Framework**: Next.js 16 (App Router, TypeScript)
 - **AI SDK**: Vercel AI SDK (Core, UI, Google Provider)
-- **Model**: Google Gemini 2.0 Flash (через `@ai-sdk/google`)
+- **Model**: Google Gemini 2.5 Flash (через `@ai-sdk/google`)
 - **Runtime**: Bun 1.3+
 - **Database**: SQLite (встроенный модуль `bun:sqlite`)
 - **Styling**: Tailwind CSS + Lucide React
